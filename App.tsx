@@ -1,5 +1,9 @@
-import React, { useState, useMemo, useCallback } from 'react';
+
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { emojiPool, chars } from './constants';
+import { themes, Theme } from './themes';
+import AboutModal from './AboutModal';
+
 
 // --- Cipher Logic Utilities ---
 
@@ -44,9 +48,39 @@ function reverseMap(map: { [key: string]: string }): { [key: string]: string } {
   return rev;
 }
 
+// --- Custom Hook for Theme Management ---
+
+const useTheme = (): [Theme, (theme: Theme) => void] => {
+    const [theme, setTheme] = useState<Theme>(() => {
+        try {
+            const savedThemeKey = localStorage.getItem('emoji-cipher-theme');
+            return themes.find(t => t.key === savedThemeKey) || themes[0];
+        } catch {
+            return themes[0];
+        }
+    });
+
+    useEffect(() => {
+        const root = document.documentElement;
+        Object.entries(theme.colors).forEach(([key, value]) => {
+            root.style.setProperty(key, value);
+        });
+        document.body.style.background = `linear-gradient(to bottom right, ${theme.colors['--bg-gradient-from']}, ${theme.colors['--bg-gradient-to']})`;
+        try {
+            localStorage.setItem('emoji-cipher-theme', theme.key);
+        } catch (error) {
+            console.error("Could not save theme to localStorage:", error);
+        }
+    }, [theme]);
+
+    return [theme, setTheme];
+};
+
 // --- Main App Component ---
 
 const App: React.FC = () => {
+    const [theme, setTheme] = useTheme();
+    const [isAboutModalOpen, setAboutModalOpen] = useState(false);
     const [plainText, setPlainText] = useState<string>('hello world');
     const [encodedText, setEncodedText] = useState<string>('');
     const [copyStatus, setCopyStatus] = useState<string>('');
@@ -96,7 +130,12 @@ const App: React.FC = () => {
     const handlePaste = async (setter: React.Dispatch<React.SetStateAction<string>>) => {
         try {
             const text = await navigator.clipboard.readText();
-            setter(text);
+            // FIX: Argument of type 'unknown' is not assignable to parameter of type 'string'.
+            // In some environments, the return type of readText() can be inferred as 'unknown'.
+            // A type guard ensures we only proceed if the clipboard content is a string.
+            if (typeof text === 'string') {
+                setter(text);
+            }
         } catch (error) {
             console.error("Paste failed:", error);
             alert("Failed to paste from clipboard.");
@@ -104,58 +143,58 @@ const App: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-900 text-gray-100 font-sans flex items-center justify-center p-4">
+        <div className="min-h-screen text-[var(--text-primary)] font-sans flex items-center justify-center p-4">
             <div className="w-full max-w-2xl flex flex-col gap-6">
                 {/* Header */}
                 <header className="text-center">
-                    <h1 className="text-3xl font-bold text-white">Emoji Cipher Demo</h1>
-                    <p className="text-md text-gray-400 mt-1">Encode text into emojis, and decode back.</p>
+                    <h1 className="text-3xl font-bold text-[var(--text-primary)]">Emoji Cipher Demo</h1>
+                    <p className="text-md text-[var(--text-secondary)] mt-1">Encode text into emojis, and decode back.</p>
                 </header>
 
                 {/* Main Content */}
                 <main className="flex flex-col gap-4">
                     {/* Plain Text Box */}
-                    <div className="bg-gray-800 rounded-xl shadow-lg p-5">
-                        <label className="font-bold text-lg mb-2 block text-gray-300">Plain Text</label>
+                    <div className="bg-gradient-to-br from-[var(--card-gradient-from)] to-[var(--card-gradient-to)] rounded-xl shadow-lg p-5 border border-[var(--input-border)]">
+                        <label className="font-bold text-lg mb-2 block text-[var(--text-primary)]">Plain Text</label>
                         <textarea
                             value={plainText}
                             onChange={(e) => setPlainText(e.target.value)}
                             placeholder="Type text here..."
-                            className="flex-1 w-full p-3 rounded-lg border border-gray-700 bg-gray-900 text-gray-100 text-base resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[150px]"
+                            className="flex-1 w-full p-3 rounded-lg border border-[var(--input-border)] bg-[var(--bg-gradient-to)] text-[var(--text-primary)] text-base resize-none focus:outline-none focus:ring-2 focus:ring-[var(--accent-focus)] min-h-[150px]"
                         />
                         <div className="grid grid-cols-3 gap-3 mt-4">
-                            <button onClick={handleEncode} className="bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">Encode ↓</button>
-                            <button onClick={() => handlePaste(setPlainText)} className="bg-gray-700 text-gray-200 font-bold py-2 px-4 rounded-lg hover:bg-gray-600 transition-colors">Paste</button>
-                            <button onClick={() => setPlainText('')} className="bg-gray-700 text-gray-200 font-bold py-2 px-4 rounded-lg hover:bg-gray-600 transition-colors">Clear</button>
+                            <button onClick={handleEncode} className="bg-gradient-to-r from-[var(--accent-from)] to-[var(--accent-to)] text-white font-bold py-2 px-4 rounded-lg hover:opacity-90 transition-opacity">Encode ↓</button>
+                            <button onClick={() => handlePaste(setPlainText)} className="bg-[var(--button-bg)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] font-bold py-2 px-4 rounded-lg hover:bg-[var(--button-hover-bg)] transition-colors">Paste</button>
+                            <button onClick={() => setPlainText('')} className="bg-[var(--button-bg)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] font-bold py-2 px-4 rounded-lg hover:bg-[var(--button-hover-bg)] transition-colors">Clear</button>
                         </div>
                     </div>
 
                     {/* Encoded Text Box */}
-                    <div className="bg-gray-800 rounded-xl shadow-lg p-5">
-                        <label className="font-bold text-lg mb-2 block text-gray-300">Encoded Emoji</label>
+                    <div className="bg-gradient-to-br from-[var(--card-gradient-from)] to-[var(--card-gradient-to)] rounded-xl shadow-lg p-5 border border-[var(--input-border)]">
+                        <label className="font-bold text-lg mb-2 block text-[var(--text-primary)]">Encoded Emoji</label>
                         <textarea
                             value={encodedText}
                             onChange={(e) => setEncodedText(e.target.value)}
                             placeholder="Encoded emoji appears here..."
-                            className="flex-1 w-full p-3 rounded-lg border border-gray-700 bg-gray-900 text-gray-100 text-base resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[150px]"
+                            className="flex-1 w-full p-3 rounded-lg border border-[var(--input-border)] bg-[var(--bg-gradient-to)] text-[var(--text-primary)] text-base resize-none focus:outline-none focus:ring-2 focus:ring-[var(--accent-focus)] min-h-[150px]"
                         />
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">
-                            <button onClick={handleDecode} className="bg-gray-700 text-gray-200 font-bold py-2 px-4 rounded-lg hover:bg-gray-600 transition-colors">Decode ↑</button>
-                            <button onClick={() => handleCopyToClipboard(encodedText, 'Emoji')} className="bg-gray-700 text-gray-200 font-bold py-2 px-4 rounded-lg hover:bg-gray-600 transition-colors">Copy</button>
-                            <button onClick={() => handlePaste(setEncodedText)} className="bg-gray-700 text-gray-200 font-bold py-2 px-4 rounded-lg hover:bg-gray-600 transition-colors">Paste</button>
-                             <button onClick={() => setEncodedText('')} className="bg-gray-700 text-gray-200 font-bold py-2 px-4 rounded-lg hover:bg-gray-600 transition-colors">Clear</button>
+                            <button onClick={handleDecode} className="bg-[var(--button-bg)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] font-bold py-2 px-4 rounded-lg hover:bg-[var(--button-hover-bg)] transition-colors">Decode ↑</button>
+                            <button onClick={() => handleCopyToClipboard(encodedText, 'Emoji')} className="bg-[var(--button-bg)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] font-bold py-2 px-4 rounded-lg hover:bg-[var(--button-hover-bg)] transition-colors">Copy</button>
+                            <button onClick={() => handlePaste(setEncodedText)} className="bg-[var(--button-bg)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] font-bold py-2 px-4 rounded-lg hover:bg-[var(--button-hover-bg)] transition-colors">Paste</button>
+                            <button onClick={() => setEncodedText('')} className="bg-[var(--button-bg)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] font-bold py-2 px-4 rounded-lg hover:bg-[var(--button-hover-bg)] transition-colors">Clear</button>
                         </div>
                     </div>
                 </main>
                 
                  {/* Mapping Toggle and Panel */}
                 <div className="flex flex-col items-center gap-2">
-                    <button onClick={() => setShowMapping(!showMapping)} className="bg-gray-700 px-4 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-600 transition-colors">
+                    <button onClick={() => setShowMapping(!showMapping)} className="bg-[var(--button-bg)] px-4 py-2 rounded-lg text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--button-hover-bg)] transition-colors">
                         {showMapping ? 'Hide Character Mapping' : 'Show Character Mapping'}
                     </button>
                     {showMapping && (
-                        <div className="w-full bg-gray-800 p-4 rounded-lg mt-2">
-                            <pre className="text-xs text-gray-400 p-2 rounded-lg border border-gray-700 bg-gray-900 h-[150px] overflow-auto font-mono">
+                        <div className="w-full bg-gradient-to-br from-[var(--card-gradient-from)] to-[var(--card-gradient-to)] p-4 rounded-lg mt-2 border border-[var(--input-border)]">
+                            <pre className="text-xs text-[var(--text-secondary)] p-2 rounded-lg border border-[var(--input-border)] bg-[var(--bg-gradient-to)] h-[150px] overflow-auto font-mono">
                                 {mappingDisplayText}
                             </pre>
                         </div>
@@ -163,17 +202,40 @@ const App: React.FC = () => {
                 </div>
 
                 {/* Footer */}
-                <footer className="text-center text-xs text-gray-500 py-4">
-                   A simple demo application.
+                <footer className="w-full text-center py-4 flex flex-col items-center gap-4">
+                    <div className="flex items-center gap-4 flex-wrap justify-center">
+                        <div className="flex items-center gap-2">
+                            <span className="text-sm text-[var(--text-secondary)]">Theme:</span>
+                            {themes.map(t => (
+                                <button
+                                    key={t.key}
+                                    onClick={() => setTheme(t)}
+                                    className={`w-6 h-6 rounded-full transition-all duration-200 border-2 ${theme.key === t.key ? 'border-[var(--accent-focus)] scale-110' : 'border-transparent hover:scale-110'}`}
+                                    style={{ background: `linear-gradient(45deg, ${t.colors['--accent-from']}, ${t.colors['--accent-to']})` }}
+                                    aria-label={`Select ${t.name} theme`}
+                                    title={t.name}
+                                />
+                            ))}
+                        </div>
+                        <span className="text-[var(--text-secondary)] hidden sm:inline">|</span>
+                        <button 
+                            onClick={() => setAboutModalOpen(true)}
+                            className="text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors hover:underline"
+                        >
+                            About IM Softworks
+                        </button>
+                    </div>
+                    <p className="text-xs text-[var(--text-secondary)] opacity-70">A simple demo application.</p>
                 </footer>
 
                 {/* Copy Status Toast */}
                 {copyStatus && (
-                    <div className="fixed bottom-5 right-5 bg-green-600 text-white py-2 px-4 rounded-lg shadow-lg">
+                    <div className="fixed bottom-5 right-5 bg-gradient-to-r from-[var(--accent-from)] to-[var(--accent-to)] text-white py-2 px-4 rounded-lg shadow-lg">
                         {copyStatus}
                     </div>
                 )}
             </div>
+            <AboutModal isOpen={isAboutModalOpen} onClose={() => setAboutModalOpen(false)} />
         </div>
     );
 };
