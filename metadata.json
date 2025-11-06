@@ -1,5 +1,5 @@
 {
-  "name": "Emoji Cipher — ডিজাইন ভার্সন",
-  "description": "An advanced emoji cipher application that encodes text into emojis using a dynamic, passphrase-seeded mapping for enhanced security. Features a sleek, modern, and responsive design.",
+  "name": "Emoji Cipher Demo",
+  "description": "A simple demonstration of encoding text into emojis and decoding it back.",
   "requestFramePermissions": []
 }
