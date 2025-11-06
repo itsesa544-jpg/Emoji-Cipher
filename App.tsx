@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { GoogleGenAI } from "@google/genai";
 import { emojiPool, chars } from './constants';
@@ -70,7 +71,9 @@ const App: React.FC = () => {
     useEffect(() => {
         const root = document.documentElement;
         Object.entries(activeTheme.colors).forEach(([key, value]) => {
-            root.style.setProperty(key, value);
+            // FIX: Explicitly cast `value` to string to resolve TypeScript error.
+            // The type inference for Object.entries might be too loose in this environment.
+            root.style.setProperty(key, value as string);
         });
     }, [activeTheme]);
 
