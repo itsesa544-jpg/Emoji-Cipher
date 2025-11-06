@@ -1,3 +1,4 @@
+
 // src/AboutModal.tsx
 import React from 'react';
 
@@ -58,7 +59,13 @@ const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose }) => {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <div className="flex flex-col items-center text-center">
-                            <img src="https://res.cloudinary.com/dlklqihg6/image/upload/v1760308052/kkchmpjdp9izcjfvvo4k.jpg" alt="Mohammad Esa Ali" className="w-32 h-32 rounded-full object-cover border-4 border-[var(--accent-from)] mb-4" />
+                            <img 
+                                src="https://res.cloudinary.com/dlklqihg6/image/upload/w_256,h_256,c_fill,f_auto,q_auto/v1760308052/kkchmpjdp9izcjfvvo4k.jpg" 
+                                alt="Mohammad Esa Ali" 
+                                className="w-32 h-32 rounded-full object-cover border-4 border-[var(--accent-from)] mb-4"
+                                loading="lazy"
+                                decoding="async"
+                             />
                             <h2 className="text-xl font-bold">👋 About Me</h2>
                             <p>Hello, I am Mohammad Esa Ali, a passionate and creative tech enthusiast. I specialize in Software Development, Web Solutions, and Creative Design.</p>
                         </div>

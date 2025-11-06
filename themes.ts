@@ -80,5 +80,23 @@ export const themes: Theme[] = [
         "--button-hover-bg": "rgba(255, 255, 255, 0.2)",
         "--input-border": "rgba(255, 255, 255, 0.1)",
     }
+  },
+  {
+    name: "Islamic",
+    key: "islamic_green",
+    colors: {
+      "--bg-gradient-from": "#043927",
+      "--bg-gradient-to": "#032d1f",
+      "--text-primary": "#f3f4f6",
+      "--text-secondary": "#9ca3af",
+      "--accent-from": "#f59e0b",
+      "--accent-to": "#d97706",
+      "--accent-focus": "#f59e0b",
+      "--card-gradient-from": "rgba(255, 255, 255, 0.03)",
+      "--card-gradient-to": "rgba(255, 255, 255, 0.01)",
+      "--button-bg": "rgba(245, 158, 11, 0.1)",
+      "--button-hover-bg": "rgba(245, 158, 11, 0.2)",
+      "--input-border": "rgba(245, 158, 11, 0.1)",
+    }
   }
 ];

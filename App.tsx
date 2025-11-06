@@ -1,9 +1,10 @@
 
-import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import React, { useState, useMemo, useCallback, useEffect, lazy, Suspense } from 'react';
 import { GoogleGenAI } from "@google/genai";
 import { emojiPool, chars } from './constants';
 import { themes, Theme } from './themes';
-import AboutModal from './AboutModal'; // Import the new modal component
+
+const AboutModal = lazy(() => import('./AboutModal'));
 
 // --- Cipher Logic Utilities (unchanged) ---
 
@@ -242,7 +243,7 @@ const App: React.FC = () => {
                 {/* Footer */}
                 <footer className="text-center text-xs text-[var(--text-secondary)] py-4">
                     <button onClick={() => setIsAboutModalOpen(true)} className="hover:text-[var(--text-primary)] transition-colors underline">
-                        Powered by IM Softwark
+                        Powered by IM Muslim
                     </button>
                 </footer>
 
@@ -253,8 +254,10 @@ const App: React.FC = () => {
                     </div>
                 )}
             </div>
-
-            <AboutModal isOpen={isAboutModalOpen} onClose={() => setIsAboutModalOpen(false)} />
+            
+            <Suspense fallback={null}>
+              <AboutModal isOpen={isAboutModalOpen} onClose={() => setIsAboutModalOpen(false)} />
+            </Suspense>
         </div>
     );
 };
